@@ -7,16 +7,17 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
 
+    let realm = try! Realm()
+    
     var categories = [Category]()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadCategories()
+//        loadCategories()
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -27,12 +28,11 @@ class CategoryViewController: UITableViewController {
         let action = UIAlertAction(title: "Add", style: .default) { [self] (action) in
             
    
-            let newCategory = Category(context: context)
+            let newCategory = Category()
             newCategory.name = textField.text!
-            newCategory.items = nil
            
             self.categories.append(newCategory)
-            self.saveCategories()
+            self.saveCategories(category: newCategory)
         }
         
         alert.addTextField { (alertTextField) in
@@ -73,23 +73,26 @@ class CategoryViewController: UITableViewController {
     }
     
     // MARK: - Data Manipulation methods
-    func saveCategories(){
+    func saveCategories(category: Category){
 
         do {
-            try context.save( )
+            try realm.write{
+                realm.add(category)
+            }
         } catch {
-            print("Error saving context \(error)")
+            print("Error saving category \(error)")
         }
         tableView.reloadData()
     }
     
-    func loadCategories(){
-        let request: NSFetchRequest<Category> = Category.fetchRequest()
-        do {
-            categories = try context.fetch(request)
-        } catch {
-            print("Error fetching data")
-        }
-        tableView.reloadData()
-    }
+//    func loadCategories(){
+        
+//        let request: NSFetchRequest<Category> = Category.fetchRequest()
+//        do {
+//            categories = try context.fetch(request)
+//        } catch {
+//            print("Error fetching data")
+//        }
+//        tableView.reloadData()
+//    }
 }
