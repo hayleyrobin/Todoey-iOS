@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
     
     var todoItems: Results<Item>?
     let realm = try! Realm()
@@ -29,7 +29,7 @@ class TodoListViewController: UITableViewController {
     
 // MARK: - TableView Datasource
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = todoItems?[indexPath.row]{
             cell.textLabel?.text = item.title
@@ -75,7 +75,6 @@ class TodoListViewController: UITableViewController {
             
             // what will happen once the user clicks the add item button on our UIAlert
             
-            
             if let currentCategory = self.selectedCategory{
                 do {
                     try self.realm.write{
@@ -87,10 +86,8 @@ class TodoListViewController: UITableViewController {
                 }catch {
                     print("Error saving new items, \(error)")
                 }
-                
             }
             self.tableView.reloadData()
-            
         }
         
         alert.addTextField { (alertTextField) in
@@ -100,13 +97,25 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
-        
     }
     
     func loadItems(){
 
         todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
+    }
+    // MARK: - Delete Date From Swipe
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemToDelete = self.todoItems?[indexPath.row] {
+            do{
+                try realm.write{
+                    realm.delete(itemToDelete)
+            }
+            }catch{
+                print("Error deleting item, \(error)")
+            }
+        }
     }
 
 }
