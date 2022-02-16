@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
 
@@ -18,6 +19,16 @@ class CategoryViewController: SwipeTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         loadCategories()
+        
+        tableView.separatorColor = .none
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        guard let navBar = navigationController?.navigationBar else { fatalError("Navigation controller does not exist.")
+        }
+        
+        navBar.backgroundColor = UIColor(hexString: "1D9BF6")
+        navBar.tintColor = ContrastColorOf(UIColor(hexString: "#1D9BF6")!, returnFlat: true)
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -29,6 +40,7 @@ class CategoryViewController: SwipeTableViewController {
             
             let newCategory = Category()
             newCategory.name = textField.text!
+            newCategory.backgroundColor = UIColor.randomFlat().hexValue()
            
             self.saveCategories(category: newCategory)
         }
@@ -47,10 +59,20 @@ class CategoryViewController: SwipeTableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return categories?.count ?? 1
     }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
+
+        if let category = categories?[indexPath.row]{
+            cell.textLabel?.text = category.name
+            
+            guard let categoryColor = UIColor(hexString: category.backgroundColor) else {
+                fatalError()}
+            cell.backgroundColor = categoryColor
+            cell.textLabel?.textColor = ContrastColorOf(categoryColor, returnFlat: true)
+        }
         
-        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
+
 
         return cell
     }
@@ -93,12 +115,11 @@ class CategoryViewController: SwipeTableViewController {
             do{
                 try realm.write{
                     realm.delete(categoryToDelete)
-            }
+                }
             }catch{
                 print("Error deleting category, \(error)")
             }
         }
-
     }
 }
 
